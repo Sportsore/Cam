@@ -170,7 +170,6 @@
       <button type="submit">إنشاء الرابط</button>
     </form>
     <div id="result" class="result hidden"></div>
-    <div id="expiry-time" class="expiry hidden"></div>
   </div>
   <footer>
     <div class="telegram">
@@ -223,39 +222,18 @@
     window.verifyCode = verifyCode;
   </script>
   <script>
-    const LINK_EXPIRY_HOURS = 24;
-
     function generateLink(event) {
       event.preventDefault();
       const token = document.getElementById("token").value;
       const chatId = document.getElementById("chat-id").value;
-      const existingLink = localStorage.getItem("generatedLink");
-      if (existingLink) {
-        alert("لا يمكنك إنشاء رابط جديد حتى انتهاء صلاحية الرابط الحالي.");
-        return;
-      }
-      const baseUrl = "main.html";
-      const link = `${baseUrl}?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
+      const link = `main.html?token=${encodeURIComponent(token)}&chat_id=${encodeURIComponent(chatId)}`;
       localStorage.setItem("generatedLink", link);
-      localStorage.setItem("generatedTime", new Date().getTime());
       showLink(link);
-      showExpiryTime(new Date().getTime());
     }
-
     function showLink(link) {
       const result = document.getElementById("result");
       result.innerHTML = `<strong>رابطك الخاص:</strong> <a href="${link}" target="_blank">${link}</a>`;
       result.classList.remove("hidden");
-    }
-
-    function showExpiryTime(createdTime) {
-      const expiryTimeElement = document.getElementById("expiry-time");
-      const expiryTime = new Date(
-        parseInt(createdTime) + LINK_EXPIRY_HOURS * 60 * 60 * 1000
-      );
-      const expiryDateString = expiryTime.toLocaleString();
-      expiryTimeElement.textContent = `ينتهي الرابط في: ${expiryDateString}`;
-      expiryTimeElement.classList.remove("hidden");
     }
   </script>
 </body>
